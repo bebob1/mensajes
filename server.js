@@ -113,13 +113,16 @@ app.get('/api/mensajes', async (req, res) => {
     connection = await mysql.createConnection(dbConfig);
 
     // Conteo total para paginación
-    const [countRows] = await connection.execute(
+    // Usamos query() en lugar de execute() para evitar conflicto de tipos
+    // con parámetros string + LIMIT/OFFSET integer en prepared statements
+    const [countRows] = await connection.query(
       `SELECT COUNT(DISTINCT m.id) AS total ${baseQuery}`,
       params
     );
     const total = countRows[0].total;
 
-    // Datos paginados
+    // Datos paginados — LIMIT y OFFSET se interpolan directamente
+    // (son integers validados, sin riesgo de inyección)
     const dataQuery = `
       SELECT
         m.id,
@@ -130,10 +133,10 @@ app.get('/api/mensajes', async (req, res) => {
       ${baseQuery}
       GROUP BY m.id, m.message_body, m.detection_score, m.received_at
       ORDER BY ${safeSort === 'sender' ? 'm.received_at' : 'm.' + safeSort} ${safeDir}
-      LIMIT ? OFFSET ?
+      LIMIT ${safeLimit} OFFSET ${offset}
     `;
 
-    const [rows] = await connection.execute(dataQuery, [...params, safeLimit, offset]);
+    const [rows] = await connection.query(dataQuery, params);
     await connection.end();
 
     res.json({
