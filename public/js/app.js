@@ -146,10 +146,33 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // Mobile filters
+  // Mobile filters — panel + overlay
+  const overlay = document.createElement('div');
+  overlay.className = 'filters-overlay';
+  document.body.appendChild(overlay);
+
+  function openFiltersPanel() {
+    filtersPanel.classList.add('mobile-open');
+    overlay.classList.add('active');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeFiltersPanel() {
+    filtersPanel.classList.remove('mobile-open');
+    overlay.classList.remove('active');
+    document.body.style.overflow = '';
+  }
+
   mobileFiltersBtn.addEventListener('click', () => {
-    filtersPanel.classList.toggle('mobile-open');
+    filtersPanel.classList.contains('mobile-open')
+      ? closeFiltersPanel()
+      : openFiltersPanel();
   });
+  overlay.addEventListener('click', closeFiltersPanel);
+
+  // Cerrar panel al aplicar filtros en móvil
+  applyBtn.addEventListener('click', () => {
+    if (window.innerWidth <= 900) closeFiltersPanel();
+  }, true);
 
   // Modal
   modalClose.addEventListener('click', closeModal);
@@ -332,24 +355,24 @@ function renderTable(data) {
     tr.dataset.id = msg.id;
 
     tr.innerHTML = `
-      <td class="col-id">
+      <td class="col-id" data-label="ID">
         <span class="id-badge">#${msg.id}</span>
       </td>
-      <td class="col-sender">
+      <td class="col-sender" data-label="Remitente">
         <span class="sender-chip">
           <i class="fas fa-user-circle"></i>
           ${escHtml(msg.sender)}
         </span>
       </td>
-      <td class="col-content">
+      <td class="col-content" data-label="Mensaje">
         <span class="msg-content" title="${escHtml(msg.message_body)}">
           ${escHtml(msg.message_body || '—')}
         </span>
       </td>
-      <td class="col-score" style="text-align:center;">
+      <td class="col-score" data-label="% Fraude" style="text-align:center;">
         ${renderScoreBadge(msg.detection_score)}
       </td>
-      <td class="col-date">
+      <td class="col-date" data-label="Fecha">
         <div class="date-cell">
           <span class="date-day">${formatDate(msg.received_at)}</span>
           <span class="date-time">${formatTime(msg.received_at)}</span>

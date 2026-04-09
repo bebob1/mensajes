@@ -933,20 +933,177 @@ html, body {
 /* ============================================================
    RESPONSIVE
    ============================================================ */
+
+/* ── Overlay para cerrar el panel en móvil ────────────────── */
+.filters-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.55);
+  backdrop-filter: blur(3px);
+  z-index: 99;
+  animation: fadeIn .2s ease;
+}
+.filters-overlay.active { display: block; }
+
+/* ════════════════════════════════════════════════════════════
+   TABLET  (≤ 900px)
+   ════════════════════════════════════════════════════════════ */
 @media (max-width: 900px) {
+
+  /* Panel de filtros como drawer lateral */
   .filters-panel {
     position: fixed;
-    top: var(--header-h); bottom: 0; left: 0;
+    top: var(--header-h);
+    bottom: 0;
+    left: 0;
     z-index: 100;
-    transform: translateX(-100%);
+    width: min(var(--filters-width), 85vw);
+    transform: translateX(-105%);
     box-shadow: var(--shadow-lg);
+    transition: transform .3s cubic-bezier(.4,0,.2,1);
   }
-  .filters-panel.mobile-open { transform: translateX(0); }
+  .filters-panel.mobile-open {
+    transform: translateX(0);
+  }
+
+  /* Mostrar botón hamburguesa */
   #mobile-filters-btn { display: flex; }
+
+  /* Ocultar brand en header (espacio) */
   .brand { display: none; }
+
+  /* Toolbar más compacta */
+  .toolbar { padding: 10px 14px; gap: 8px; }
+
+  /* Ocultar columnas menos importantes en tabla */
+  .col-id, .col-actions { display: none; }
+  .col-sender { width: 120px; }
+  .col-date   { width: 130px; }
 }
 
+/* ════════════════════════════════════════════════════════════
+   MÓVIL  (≤ 600px)
+   ════════════════════════════════════════════════════════════ */
 @media (max-width: 600px) {
+
+  /* Header más compacto */
+  .header-inner { padding: 0 12px; gap: 10px; }
+  .page-title   { font-size: .8rem; }
+  .nav-link span { display: none; } /* solo icono */
+  .nav-link {
+    padding: 7px 10px;
+    gap: 0;
+  }
+
+  /* Toolbar de una sola línea */
+  .toolbar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+    padding: 10px 12px;
+  }
+  .toolbar-left,
+  .toolbar-right {
+    width: 100%;
+    justify-content: space-between;
+  }
+  .toolbar-right { flex-wrap: nowrap; }
+
+  /* ── Tabla → tarjetas responsive ──────────────────────── */
+
+  /* Ocultar cabecera de tabla */
+  .messages-table thead { display: none; }
+
+  /* Cada fila se convierte en una tarjeta */
+  .messages-table tbody tr {
+    display: block;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    margin: 8px 12px;
+    padding: 12px 14px;
+    transition: border-color var(--ease), box-shadow var(--ease);
+  }
+  .messages-table tbody tr:hover {
+    border-color: var(--border-accent);
+    box-shadow: 0 4px 16px rgba(0,0,0,.35);
+  }
+  /* Quitar borde izquierdo del hover (no aplica en tarjetas) */
+  .messages-table tbody tr:hover td:first-child {
+    border-left: none;
+    padding-left: 0;
+  }
+
+  /* Cada celda en bloque con label */
+  .messages-table td {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 7px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: .82rem;
+  }
+  .messages-table td:last-child { border-bottom: none; }
+
+  /* Pseudo-label antes de cada celda */
+  .messages-table td::before {
+    content: attr(data-label);
+    flex-shrink: 0;
+    min-width: 80px;
+    font-size: .62rem;
+    font-weight: 600;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    padding-top: 2px;
+  }
+
+  /* Ocultar acciones en tarjeta (ya se abre con tap en la fila) */
+  .col-actions { display: none; }
+
+  /* Contenido sin truncar en móvil */
+  .msg-content {
+    max-width: 100%;
+    white-space: normal;
+    overflow: visible;
+    text-overflow: unset;
+    line-height: 1.5;
+  }
+
+  /* Sender chip más ancho */
+  .sender-chip { max-width: 100%; }
+
+  /* Paginación más compacta y touch-friendly */
+  .pagination { padding: 12px; gap: 4px; flex-wrap: wrap; }
+  .page-btn   { width: 40px; height: 40px; }
+  .page-num   { min-width: 40px; height: 40px; font-size: .85rem; }
+
+  /* Modal a pantalla completa */
+  .modal-overlay { padding: 0; align-items: flex-end; }
+  .modal-box {
+    border-radius: 16px 16px 0 0;
+    max-width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+
+  /* Grid de detalle en 1 columna */
   .detail-grid { grid-template-columns: 1fr; }
-  .toolbar-right { flex-wrap: wrap; }
+
+  /* Filtros */
+  .date-range { flex-direction: column; gap: 10px; }
+  .date-sep   { display: none; }
+  .date-field { width: 100%; }
+}
+
+/* ════════════════════════════════════════════════════════════
+   MÓVIL PEQUEÑO  (≤ 400px)
+   ════════════════════════════════════════════════════════════ */
+@media (max-width: 400px) {
+  :root { --header-h: 52px; }
+  .page-title { font-size: .72rem; }
+  .toolbar-right { gap: 6px; }
+  .select-control { font-size: .75rem; padding: 6px 24px 6px 8px; }
+  .messages-table tbody tr { margin: 6px 8px; }
 }
