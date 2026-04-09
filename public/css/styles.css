@@ -1081,7 +1081,7 @@ html, body {
     font-size: .83rem;
     font-weight: 500;
     color: var(--text-primary);
-    word-break: break-all;
+    white-space: nowrap;
   }
   .sender-chip i {
     color: var(--accent-primary);
