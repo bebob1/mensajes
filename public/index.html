@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Consulta y filtrado de mensajes fraudulentos (smishing) detectados en Colombia. Filtra por contenido, remitente, fecha y puntuación de fraude.">
+  <title>Mensajes Fraudulentos — Smishing Colombia</title>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
+  <!-- Estilos -->
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+  <!-- ══ HEADER ══════════════════════════════════════════ -->
+  <header id="header">
+    <div class="header-inner">
+      <a href="#" class="brand">
+        <span class="brand-dot"></span>
+        Smishing Colombia
+      </a>
+      <h1 class="page-title">Consulta de Mensajes Fraudulentos</h1>
+      <nav class="header-nav">
+        <a href="http://localhost:3000" class="nav-link" target="_blank" title="Ir al Dashboard principal">
+          <i class="fas fa-map-marked-alt"></i> Dashboard
+        </a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- ══ MAIN LAYOUT ═════════════════════════════════════ -->
+  <div class="app-layout">
+
+    <!-- ── PANEL DE FILTROS (Sidebar) ──────────────────── -->
+    <aside id="filters-panel" class="filters-panel">
+      <div class="filters-header">
+        <span><i class="fas fa-filter"></i> Filtros</span>
+        <button id="clear-filters-btn" class="clear-btn" title="Limpiar todos los filtros">
+          <i class="fas fa-times"></i> Limpiar
+        </button>
+      </div>
+
+      <div class="filter-section">
+        <label class="filter-label" for="search-global">
+          <i class="fas fa-search"></i> Búsqueda global
+        </label>
+        <div class="search-wrapper">
+          <input
+            id="search-global"
+            type="text"
+            class="filter-input"
+            placeholder="Contenido o remitente…"
+            autocomplete="off"
+          >
+          <div id="search-spinner" class="input-spinner hidden"></div>
+        </div>
+      </div>
+
+      <div class="filter-section">
+        <label class="filter-label" for="filter-content">
+          <i class="fas fa-comment-alt"></i> Contenido del mensaje
+        </label>
+        <input
+          id="filter-content"
+          type="text"
+          class="filter-input"
+          placeholder="Texto dentro del mensaje…"
+          autocomplete="off"
+        >
+      </div>
+
+      <div class="filter-section">
+        <label class="filter-label" for="filter-sender">
+          <i class="fas fa-user"></i> Remitente
+        </label>
+        <div class="autocomplete-wrapper">
+          <input
+            id="filter-sender"
+            type="text"
+            class="filter-input"
+            placeholder="Número o nombre…"
+            autocomplete="off"
+          >
+          <ul id="sender-suggestions" class="suggestions-list hidden"></ul>
+        </div>
+      </div>
+
+      <div class="filter-section">
+        <label class="filter-label">
+          <i class="fas fa-calendar-alt"></i> Rango de fechas
+        </label>
+        <div class="date-range">
+          <div class="date-field">
+            <span class="date-label">Desde</span>
+            <input id="filter-date-from" type="date" class="filter-input filter-input--date">
+          </div>
+          <div class="date-sep"><i class="fas fa-arrow-right"></i></div>
+          <div class="date-field">
+            <span class="date-label">Hasta</span>
+            <input id="filter-date-to" type="date" class="filter-input filter-input--date">
+          </div>
+        </div>
+      </div>
+
+      <div class="filter-section">
+        <label class="filter-label">
+          <i class="fas fa-shield-alt"></i> % de Fraude
+          <span id="score-range-label" class="score-range-label">0 – 100</span>
+        </label>
+        <div class="score-slider-wrapper">
+          <div class="dual-slider">
+            <input id="score-min" type="range" min="0" max="100" step="1" value="0"  class="range-slider range-slider--min">
+            <input id="score-max" type="range" min="0" max="100" step="1" value="100" class="range-slider range-slider--max">
+            <div id="score-track-fill" class="range-track-fill"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="filter-section filter-section--actions">
+        <button id="apply-filters-btn" class="btn-primary">
+          <i class="fas fa-search"></i> Aplicar filtros
+        </button>
+      </div>
+
+      <!-- Resumen de resultados -->
+      <div id="result-summary" class="result-summary hidden">
+        <div class="summary-line">
+          <span id="summary-count" class="summary-count">—</span>
+          <span class="summary-text">mensajes encontrados</span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- ── ÁREA PRINCIPAL ──────────────────────────────── -->
+    <main class="main-content">
+
+      <!-- Barra de herramientas superior -->
+      <div class="toolbar">
+        <div class="toolbar-left">
+          <button id="mobile-filters-btn" class="icon-btn" title="Mostrar filtros">
+            <i class="fas fa-sliders-h"></i>
+          </button>
+          <div class="breadcrumb">
+            <i class="fas fa-envelope-open-text"></i>
+            <span>Mensajes</span>
+          </div>
+        </div>
+        <div class="toolbar-right">
+          <div class="sort-controls">
+            <label class="sr-only" for="sort-by">Ordenar por</label>
+            <select id="sort-by" class="select-control">
+              <option value="received_at">Fecha</option>
+              <option value="detection_score">% Fraude</option>
+              <option value="id">ID</option>
+            </select>
+            <button id="sort-dir-btn" class="icon-btn" title="Cambiar dirección">
+              <i class="fas fa-sort-amount-down" id="sort-dir-icon"></i>
+            </button>
+          </div>
+          <div class="limit-control">
+            <label class="sr-only" for="page-limit">Por página</label>
+            <select id="page-limit" class="select-control">
+              <option value="25">25 / pág.</option>
+              <option value="50" selected>50 / pág.</option>
+              <option value="100">100 / pág.</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Estado: cargando -->
+      <div id="state-loading" class="state-view state-loading hidden">
+        <div class="spinner-large"></div>
+        <p>Consultando mensajes…</p>
+      </div>
+
+      <!-- Estado: error -->
+      <div id="state-error" class="state-view state-error hidden">
+        <i class="fas fa-exclamation-triangle"></i>
+        <p id="error-text">Ocurrió un error al cargar los datos.</p>
+        <button id="retry-btn" class="btn-secondary">Reintentar</button>
+      </div>
+
+      <!-- Estado: sin resultados -->
+      <div id="state-empty" class="state-view state-empty hidden">
+        <i class="fas fa-inbox"></i>
+        <p>No se encontraron mensajes con los filtros actuales.</p>
+      </div>
+
+      <!-- Tabla de mensajes -->
+      <div id="table-wrapper" class="table-wrapper hidden">
+        <table id="messages-table" class="messages-table">
+          <thead>
+            <tr>
+              <th class="col-id">ID</th>
+              <th class="col-sender">Remitente</th>
+              <th class="col-content">Contenido del mensaje</th>
+              <th class="col-score">% Fraude</th>
+              <th class="col-date">Fecha y hora</th>
+              <th class="col-actions"></th>
+            </tr>
+          </thead>
+          <tbody id="messages-tbody">
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Paginación -->
+      <div id="pagination" class="pagination hidden">
+        <button id="prev-page-btn" class="page-btn" disabled>
+          <i class="fas fa-chevron-left"></i>
+        </button>
+        <div id="page-numbers" class="page-numbers"></div>
+        <button id="next-page-btn" class="page-btn">
+          <i class="fas fa-chevron-right"></i>
+        </button>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- ══ MODAL — Detalle del mensaje ═════════════════════ -->
+  <div id="detail-modal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h2 id="modal-title">Detalle del Mensaje</h2>
+        <button id="modal-close" class="modal-close" aria-label="Cerrar">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="detail-grid">
+          <div class="detail-item">
+            <span class="detail-key">ID</span>
+            <span id="detail-id" class="detail-value detail-value--mono">—</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-key">Remitente</span>
+            <span id="detail-sender" class="detail-value">—</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-key">% Fraude</span>
+            <span id="detail-score" class="detail-value">—</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-key">Fecha y hora</span>
+            <span id="detail-date" class="detail-value">—</span>
+          </div>
+        </div>
+        <div class="detail-content-block">
+          <span class="detail-key">Contenido completo</span>
+          <p id="detail-content" class="detail-message-body">—</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Script principal -->
+  <script src="js/app.js"></script>
+</body>
+</html>
