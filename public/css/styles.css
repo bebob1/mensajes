@@ -1062,6 +1062,33 @@ html, body {
   /* Ocultar acciones en tarjeta (ya se abre con tap en la fila) */
   .col-actions { display: none; }
 
+  /* Aseguramos que col-sender sea visible en móvil */
+  .col-id, .col-sender, .col-content, .col-score, .col-date { display: flex; }
+
+  /* Sender chip: deshacemos el pill y mostramos como texto legible */
+  .sender-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: transparent;
+    border: none;
+    border-radius: 0;
+    padding: 0;
+    max-width: 100%;
+    white-space: normal;
+    overflow: visible;
+    text-overflow: unset;
+    font-size: .83rem;
+    font-weight: 500;
+    color: var(--text-primary);
+    word-break: break-all;
+  }
+  .sender-chip i {
+    color: var(--accent-primary);
+    font-size: .8rem;
+    flex-shrink: 0;
+  }
+
   /* Contenido sin truncar en móvil */
   .msg-content {
     max-width: 100%;
@@ -1070,9 +1097,6 @@ html, body {
     text-overflow: unset;
     line-height: 1.5;
   }
-
-  /* Sender chip más ancho */
-  .sender-chip { max-width: 100%; }
 
   /* Paginación más compacta y touch-friendly */
   .pagination { padding: 12px; gap: 4px; flex-wrap: wrap; }
